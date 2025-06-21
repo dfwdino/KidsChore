@@ -1,0 +1,70 @@
+@page "/report"
+@* @attribute [Authorize(Roles = "Parent")] *@
+@inject IReportService ReportService
+
+<h3>Weekly Earnings Report - @DateTime.Now.ToString("MMMM dd, yyyy")</h3>
+
+@if (reports.Count == 0)
+{
+    <div class="alert alert-info">No report data available yet.</div>
+}
+else
+{
+    bool isFirst = true;
+    foreach (var weekGroup in reports.GroupBy(r => r.WeekStartDate).OrderByDescending(g => g.Key))
+    {
+        if (!isFirst)
+        {
+            <div style="height: 18px;"></div>
+            <hr class="my-1" />
+        }
+        isFirst = false;
+        var weekStart = weekGroup.Key;
+        var weekEnd = weekStart.AddDays(6);
+        <div class="bg-info text-dark text-center mb-2" style="padding-top: 12px; padding-bottom: 12px; border-radius: 4px;">
+            <strong>Week of @weekStart.ToString("MMMM dd, yyyy") to @weekEnd.ToString("MMMM dd, yyyy")</strong>
+        </div>
+        <table class="table table-bordered table-sm text-center">
+            <thead>
+                <tr>
+                    <th class="text-center">Kid</th>
+                    <th class="text-center">Chore</th>
+                    <th class="text-center">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var kidGroup in weekGroup.GroupBy(r => r.KidName).OrderBy(g => g.Key))
+                {
+                    var completions = kidGroup.SelectMany(r => r.Completions).ToList();
+                    foreach (var completion in completions)
+                    {
+                        <tr>
+                            <td class="text-center">@kidGroup.Key</td>
+                            <td class="text-center">@completion.ChoreItem?.ChoreName</td>
+                            <td class="text-center">@(completion.ChoreItem?.Price.ToString("C"))</td>
+                        </tr>
+                    }
+                    var total = completions.Sum(c => c.ChoreItem?.Price ?? 0);
+                    <tr class="table-secondary">
+                        <td colspan="3" class="text-center">
+                            <strong>@kidGroup.Key's Weekly Breakdown:</strong>
+                            <span class="ms-3"><strong>Spending:</strong> @((total * 0.5m).ToString("C"))</span>
+                            <span class="ms-3"><strong>Savings:</strong> @((total * 0.25m).ToString("C"))</span>
+                            <span class="ms-3"><strong>401K:</strong> @((total * 0.25m).ToString("C"))</span>
+                        </td>
+                    </tr>
+                    <tr><td colspan="3" style="height: 16px;"></td></tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    private List<WeeklyEarningsReport> reports = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        reports = (await ReportService.GetWeeklyEarningsAsync()).ToList();
+    }
+} 

@@ -3,6 +3,7 @@ using KidsChore.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace KidsChore.Infrastructure.Repositories
 {
@@ -35,6 +36,20 @@ namespace KidsChore.Infrastructure.Repositories
 
         public async Task UpdateAsync(T entity)
         {
+            // Get the primary key property name using EF Core metadata
+            var entityType = _context.Model.FindEntityType(typeof(T));
+            var key = entityType.FindPrimaryKey();
+            var keyProperty = key.Properties.First();
+            var keyName = keyProperty.Name;
+            var keyValue = typeof(T).GetProperty(keyName)?.GetValue(entity);
+
+            // Check if an entity with the same key is already tracked
+            var trackedEntity = _context.ChangeTracker.Entries<T>()
+                .FirstOrDefault(e => e.Property(keyName).CurrentValue.Equals(keyValue));
+            if (trackedEntity != null)
+            {
+                trackedEntity.State = EntityState.Detached;
+            }
             _dbSet.Update(entity);
             await _context.SaveChangesAsync();
         }

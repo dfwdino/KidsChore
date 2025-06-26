@@ -18,7 +18,7 @@ namespace KidsChore.Infrastructure.Services
         public async Task<User?> GetByUsernameAsync(string username)
         {
             var users = await _repo.GetAllAsync();
-            return users.FirstOrDefault(u => u.Username == username && !u.IsDeleted);
+            return users.FirstOrDefault(u => u.Username.Equals(username, System.StringComparison.OrdinalIgnoreCase) && !u.IsDeleted);
         }
         public Task AddAsync(User user) => _repo.AddAsync(user);
         public Task UpdateAsync(User user) => _repo.UpdateAsync(user);

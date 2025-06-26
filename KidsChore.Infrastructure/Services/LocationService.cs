@@ -2,6 +2,7 @@ using KidsChore.Application.Interfaces;
 using KidsChore.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace KidsChore.Infrastructure.Services
 {
@@ -12,7 +13,11 @@ namespace KidsChore.Infrastructure.Services
         {
             _repo = repo;
         }
-        public Task<IEnumerable<Location>> GetAllAsync() => _repo.GetAllAsync();
+        public async Task<IEnumerable<Location>> GetAllAsync()
+        {
+            var locations = await _repo.GetAllAsync();
+            return locations.OrderBy(l => l.LocationName);
+        }
         public Task<Location?> GetByIdAsync(int id) => _repo.GetByIdAsync(id);
         public Task AddAsync(Location location) => _repo.AddAsync(location);
         public Task UpdateAsync(Location location) => _repo.UpdateAsync(location);

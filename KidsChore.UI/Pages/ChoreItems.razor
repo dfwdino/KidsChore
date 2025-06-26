@@ -42,7 +42,7 @@
             @foreach (var item in choreItems)
             {
                 <tr>
-                    <td>@item.ChoreName</td>
+                    <td>@item.ChoreName.ToTitleCase()</td>
                     <td>@item.Price</td>
                     <td>@item.Description</td>
                     <td>
@@ -59,7 +59,7 @@
     {
         <div class="card mb-2 shadow-sm">
             <div class="card-body p-2">
-                <div><strong>Chore:</strong> @item.ChoreName</div>
+                <div><strong>Chore:</strong> @item.ChoreName.ToTitleCase()</div>
                 <div><strong>Price:</strong> @item.Price</div>
                 @if (!string.IsNullOrWhiteSpace(item.Description))
                 {

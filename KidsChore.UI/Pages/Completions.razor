@@ -25,7 +25,7 @@
         </div>
         <div class="mb-3">
             <label class="form-label">Chore Item</label>
-            <InputSelect class="form-control" @bind-Value="completionModel.ChoreItemId">
+            <InputSelect class="form-control" @bind-Value="completionModel.ChoreItemId" @onchange="OnChoreChanged">
                 <option value="">Select Chore</option>
                 @foreach (var chore in chores)
                 {
@@ -42,6 +42,10 @@
                     <option value="@location.LocationId">@location.LocationName</option>
                 }
             </InputSelect>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Price</label>
+            <InputNumber class="form-control" @bind-Value="completionModel.Price" />
         </div>
         <div class="mb-3">
             <label class="form-label">Completion Date/Time</label>
@@ -135,6 +139,13 @@
         kids = (await KidService.GetAllAsync()).Where(k => !k.IsDeleted).ToList();
         chores = (await ChoreItemService.GetAllAsync()).Where(c => !c.IsDeleted).ToList();
         locations = (await LocationService.GetAllAsync()).Where(l => !l.IsDeleted).ToList();
+        // Set default location if not editing
+        if (completionModel.ChoreCompletionId == 0)
+        {
+            var defaultLoc = locations.FirstOrDefault(l => l.LocationName.Equals("Daddy's Home", StringComparison.OrdinalIgnoreCase));
+            if (defaultLoc != null)
+                completionModel.LocationId = defaultLoc.LocationId;
+        }
     }
 
     private async Task HandleValidSubmit()
@@ -170,11 +181,27 @@
     private void ClearForm()
     {
         completionModel = new ChoreCompletion { CompletionDateTime = DateTime.Now };
+        // Set default location
+        var defaultLoc = locations.FirstOrDefault(l => l.LocationName.Equals("Daddy's Home", StringComparison.OrdinalIgnoreCase));
+        if (defaultLoc != null)
+            completionModel.LocationId = defaultLoc.LocationId;
         showForm = false;
     }
 
     private void ToggleForm()
     {
         showForm = !showForm;
+    }
+
+    private void OnChoreChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int choreId))
+        {
+            var selectedChore = chores.FirstOrDefault(c => c.ChoreItemId == choreId);
+            if (selectedChore != null && completionModel.ChoreCompletionId == 0)
+            {
+                completionModel.Price = selectedChore.Price;
+            }
+        }
     }
 } 

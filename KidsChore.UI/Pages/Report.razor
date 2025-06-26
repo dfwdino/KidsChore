@@ -40,17 +40,30 @@ else
                     {
                         <tr>
                             <td class="text-center">@kidGroup.Key</td>
-                            <td class="text-center">@completion.ChoreItem?.ChoreName</td>
-                            <td class="text-center">@(completion.ChoreItem?.Price.ToString("C"))</td>
+                            <td class="text-center">
+                                @completion.ChoreItem?.ChoreName@if (!string.IsNullOrWhiteSpace(completion.Notes)) { <span> - @completion.Notes</span> }
+                            </td>
+                            <td class="text-center">@((completion.Price != 0 ? completion.Price : (completion.ChoreItem?.Price ?? 0)).ToString("C"))</td>
                         </tr>
+                       
+                       
+                       
+                       
+                       
+                       
                     }
-                    var total = completions.Sum(c => c.ChoreItem?.Price ?? 0);
+                    var values = completions.Select(c => c.Price != 0 ? c.Price : (c.ChoreItem?.Price ?? 0)).ToList();
+                    var positiveTotal = values.Where(v => v > 0).Sum();
+                    var negativeTotal = values.Where(v => v < 0).Sum();
+                    var spending = (positiveTotal * 0.5m) + negativeTotal;
+                    var savings = positiveTotal * 0.25m;
+                    var retirement = positiveTotal * 0.25m;
                     <tr class="table-secondary">
                         <td colspan="3" class="text-center">
                             <strong>@kidGroup.Key's Weekly Breakdown:</strong>
-                            <span class="ms-3"><strong>Spending:</strong> @((total * 0.5m).ToString("C"))</span>
-                            <span class="ms-3"><strong>Savings:</strong> @((total * 0.25m).ToString("C"))</span>
-                            <span class="ms-3"><strong>401K:</strong> @((total * 0.25m).ToString("C"))</span>
+                            <span class="ms-3"><strong>Spending:</strong> @spending.ToString("C")</span>
+                            <span class="ms-3"><strong>Savings:</strong> @savings.ToString("C")</span>
+                            <span class="ms-3"><strong>Retirement:</strong> @retirement.ToString("C")</span>
                         </td>
                     </tr>
                     <tr><td colspan="3" style="height: 16px;"></td></tr>

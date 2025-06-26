@@ -43,8 +43,8 @@
             @foreach (var chore in chores)
             {
                 <tr>
-                    <td>@chore.ChoreName</td>
-                    <td>@chore.Price</td>
+                    <td>@chore.ChoreName.ToTitleCase()</td>
+                    <td>@FormatPrice(chore.Price)</td>
                     <td>@chore.Description</td>
                     <td>
                         <button class="btn btn-sm btn-info me-1" @onclick="@(() => EditChore(chore))">Edit</button>
@@ -60,8 +60,8 @@
     {
         <div class="card mb-2 shadow-sm">
             <div class="card-body p-2">
-                <div><strong>Chore:</strong> @chore.ChoreName</div>
-                <div><strong>Price:</strong> @chore.Price</div>
+                <div><strong>Chore:</strong> @chore.ChoreName.ToTitleCase()</div>
+                <div><strong>Price:</strong> @FormatPrice(chore.Price)</div>
                 @if (!string.IsNullOrWhiteSpace(chore.Description))
                 {
                     <div><strong>Description:</strong> @chore.Description</div>
@@ -128,5 +128,13 @@
     private void ToggleForm()
     {
         showForm = !showForm;
+    }
+
+    private string FormatPrice(decimal price)
+    {
+        if (price % 1 == 0)
+            return "$" + ((int)price).ToString();
+        else
+            return "$" + price.ToString("0.00");
     }
 } 

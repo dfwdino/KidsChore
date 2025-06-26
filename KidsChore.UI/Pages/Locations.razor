@@ -38,7 +38,7 @@
             @foreach (var location in locations)
             {
                 <tr>
-                    <td>@location.LocationName</td>
+                    <td>@location.LocationName.ToTitleCase()</td>
                     <td>@location.Description</td>
                     <td>
                         <button class="btn btn-sm btn-info me-1" @onclick="@(() => EditLocation(location))">Edit</button>
@@ -54,7 +54,7 @@
     {
         <div class="card mb-2 shadow-sm">
             <div class="card-body p-2">
-                <div><strong>Location:</strong> @location.LocationName</div>
+                <div><strong>Location:</strong> @location.LocationName.ToTitleCase()</div>
                 @if (!string.IsNullOrWhiteSpace(location.Description))
                 {
                     <div><strong>Description:</strong> @location.Description</div>

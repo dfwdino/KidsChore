@@ -11,6 +11,7 @@ namespace KidsChore.Domain.Entities
         public bool IsDeleted { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+        public decimal Price { get; set; }
 
         public Kid? Kid { get; set; }
         public ChoreItem? ChoreItem { get; set; }

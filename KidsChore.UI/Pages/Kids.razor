@@ -43,7 +43,7 @@
             @foreach (var kid in kids)
             {
                 <tr>
-                    <td>@kid.Name</td>
+                    <td>@kid.Name.ToTitleCase()</td>
                     <td>@kid.Age</td>
                     <td>@kid.Grade</td>
                     <td>
@@ -60,7 +60,7 @@
     {
         <div class="card mb-2 shadow-sm">
             <div class="card-body p-2">
-                <div><strong>Name:</strong> @kid.Name</div>
+                <div><strong>Name:</strong> @kid.Name.ToTitleCase()</div>
                 <div><strong>Age:</strong> @kid.Age</div>
                 <div><strong>Grade:</strong> @kid.Grade</div>
                 <div class="mt-2 d-flex gap-2">

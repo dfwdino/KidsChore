@@ -42,7 +42,7 @@ namespace KidsChore.Infrastructure.Services
                         WeekNumber = g.Key.Week,
                         Year = g.Key.Year,
                         WeekStartDate = weekStart,
-                        TotalEarnings = g.Sum(x => x.ChoreItem?.Price ?? 0),
+                        TotalEarnings = g.Sum(x => x.Price > 0 ? x.Price : (x.ChoreItem?.Price ?? 0)),
                         Completions = g.ToList()
                     };
                 })

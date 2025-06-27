@@ -41,7 +41,7 @@ else
                         <tr>
                             <td class="text-center">@kidGroup.Key</td>
                             <td class="text-center">
-                                @completion.ChoreItem?.ChoreName@if (!string.IsNullOrWhiteSpace(completion.Notes)) { <span> - @completion.Notes</span> }
+                                @completion.ChoreItem?.ChoreName @if (!string.IsNullOrWhiteSpace(completion.Notes)) { <span> - @completion.Notes</span> }<span> - @completion.CompletionDateTime.ToString("MM/dd/yyyy")</span>
                             </td>
                             <td class="text-center">@((completion.Price != 0 ? completion.Price : (completion.ChoreItem?.Price ?? 0)).ToString("C"))</td>
                         </tr>

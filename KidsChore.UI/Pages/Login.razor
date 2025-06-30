@@ -43,7 +43,7 @@
             // Store user info in session (for demo, use localStorage or a static class)
             AuthState.CurrentUser = user;
             ((CustomAuthenticationStateProvider)AuthStateProvider).NotifyUserAuthentication();
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo("completions");
         }
         else
         {

@@ -66,3 +66,10 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+
+.custom-table-header {
+    background-color: lightblue !important;
+    color: black !important;
+    text-align: center;
+}

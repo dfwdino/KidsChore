@@ -5,9 +5,13 @@
 @inject IChoreItemService ChoreItemService
 @inject ILocationService LocationService
 
+
 <h3>Chore Completions</h3>
 
-<button class="btn btn-primary mb-3" @onclick="ToggleForm">@(showForm ? (kidModelIsEdit ? "Edit Completion" : "Hide Form") : "Add Completion")</button>
+<button class="btn btn-primary mb-1" @onclick="ToggleForm">@(showForm ? (kidModelIsEdit ? "Edit Completion" : "Hide Form") : "Add Completion")</button>
+<br />
+<div style="margin-bottom: 2rem;"></div>
+
 
 <div class="collapse @(showForm ? "show" : "")" id="completionForm">
     <EditForm Model="completionModel" OnValidSubmit="HandleValidSubmit">
@@ -43,36 +47,41 @@
                 }
             </InputSelect>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Price</label>
-            <InputNumber class="form-control" @bind-Value="completionModel.Price" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Completion Date/Time</label>
-            <InputDate class="form-control" @bind-Value="completionModel.CompletionDateTime" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Notes</label>
-            <InputText class="form-control" @bind-Value="completionModel.Notes" />
-        </div>
+        <button type="button" class="btn btn-link mb-2 p-0" @onclick="ToggleDetails">@(showDetails ? "Hide Details" : "Show Details")</button>
+        <br />
+        @if (showDetails)
+        {
+            <div class="mb-3" style="margin-bottom: 0.75rem;">
+                <label class="form-label">Price</label>
+                <InputNumber class="form-control" @bind-Value="completionModel.Price" />
+            </div>
+            <div class="mb-3" style="margin-bottom: 0.75rem;">
+                <label class="form-label">Completion Date/Time</label>
+                <InputDate class="form-control" @bind-Value="completionModel.CompletionDateTime" />
+            </div>
+            <div class="mb-3" style="margin-bottom: 0.75rem;">
+                <label class="form-label">Notes</label>
+                <InputText class="form-control" @bind-Value="completionModel.Notes" />
+            </div>
+        }
         <button type="submit" class="btn btn-success">@(completionModel.ChoreCompletionId == 0 ? "Add Completion" : "Update Completion")</button>
         @if (completionModel.ChoreCompletionId != 0)
         {
-            <button type="button" class="btn btn-secondary ms-2" @onclick="ClearForm">Cancel</button>
+            <button type="button" class="btn btn-secondary ms-1" @onclick="ClearForm">Cancel</button>
         }
     </EditForm>
 </div>
 
-<div class="d-none d-md-block">
+<div class="d-none d-md-block" style="text-align:center">
     <table class="table table-striped table-hover">
         <thead>
             <tr>
-                <th>Kid</th>
-                <th>Chore</th>
-                <th>Location</th>
-                <th>Date</th>
-                <th>Notes</th>
-                <th>Actions</th>
+                <th class="custom-table-header">Kid</th>
+                <th class="custom-table-header">Chore</th>
+                <th class="custom-table-header">Location</th>
+                <th class="custom-table-header">Date</th>
+                <th class="custom-table-header">Notes</th>
+                <th class="custom-table-header">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -123,6 +132,7 @@
     private List<Location> locations = new();
     private bool showForm = false;
     private bool kidModelIsEdit => completionModel.ChoreCompletionId != 0;
+    private bool showDetails = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -203,5 +213,10 @@
                 completionModel.Price = selectedChore.Price;
             }
         }
+    }
+
+    private void ToggleDetails()
+    {
+        showDetails = !showDetails;
     }
 } 

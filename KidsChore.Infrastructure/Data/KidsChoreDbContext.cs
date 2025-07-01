@@ -13,6 +13,7 @@ namespace KidsChore.Infrastructure.Data
         public DbSet<ChoreItem> ChoreItems { get; set; }
         public DbSet<ChoreCompletion> ChoreCompletions { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<WeeklyPaymentStatus> WeeklyPaymentStatuses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

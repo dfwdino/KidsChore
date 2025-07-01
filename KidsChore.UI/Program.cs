@@ -27,6 +27,7 @@ builder.Services.AddScoped<IChoreItemService, ChoreItemService>();
 builder.Services.AddScoped<IChoreCompletionService, ChoreCompletionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IWeeklyPaymentStatusService, WeeklyPaymentStatusService>();
 
 builder.Services.AddAuthorizationCore();
 

@@ -1,4 +1,5 @@
 @page "/no-access"
+@inject NavigationManager NavigationManager
 
 <div class="container">
     <div class="row justify-content-center">
@@ -8,6 +9,16 @@
             <hr class="my-4">
             <p>If you believe you should have access, please contact the administrator.</p>
             <a href="/" class="btn btn-primary btn-lg">Go to Homepage</a>
+            <br />
+            <button class="btn btn-success btn-lg mt-3" @onclick="GoToLogin">Sign In</button>
         </div>
     </div>
-</div> 
+</div>
+
+@code {
+    private void GoToLogin()
+    {
+        var returnUrl = NavigationManager.Uri;
+        NavigationManager.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(returnUrl)}");
+    }
+} 

@@ -2,6 +2,7 @@
 @inject NavigationManager Navigation
 @inject IUserService UserService
 @inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
 
 <div class="text-center my-4">
     <h2>Welcome to Kid Chores! <span style="font-size:2em;">🧹✨</span></h2>
@@ -34,16 +35,30 @@
 @code {
     private LoginModel loginModel = new();
     private string? errorMessage;
+    private string? returnUrl;
+
+    protected override void OnInitialized()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        returnUrl = query["returnUrl"];
+    }
 
     private async Task HandleLogin()
     {
         var user = await UserService.AuthenticateAsync(loginModel.Username, loginModel.Password);
         if (user != null)
         {
-            // Store user info in session (for demo, use localStorage or a static class)
             AuthState.CurrentUser = user;
             ((CustomAuthenticationStateProvider)AuthStateProvider).NotifyUserAuthentication();
-            Navigation.NavigateTo("completions");
+            if (!string.IsNullOrEmpty(returnUrl))
+            {
+                Navigation.NavigateTo(returnUrl);
+            }
+            else
+            {
+                Navigation.NavigateTo("completions");
+            }
         }
         else
         {

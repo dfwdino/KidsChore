@@ -2,10 +2,21 @@
 @attribute [Authorize(Roles = "Parent")]
 @inject IChoreItemService ChoreItemService
 @inject NavigationManager NavigationManager
+@using KidsChore.UI.Shared
 
 <h3>Chore Items</h3>
 
 <button class="btn btn-primary mb-3" @onclick="ToggleForm">@(showForm ? (isEdit ? "Edit Chore" : "Add Chore") : "Add Chore")</button>
+<button class="btn btn-outline-secondary ms-2" @onclick="ToggleSearch">@(showSearch ? "Hide Search" : "Show Search")</button>
+
+@if (showSearch)
+{
+    <SearchFilterComponent 
+        TotalCount="@allChores.Count" 
+        FilteredCount="@filteredChores.Count" 
+        ShowDateFilter="false"
+        OnFiltersChanged="OnFiltersChanged" />
+}
 <div class="collapse @(showForm ? "show" : "")" id="choreForm">
     <EditForm Model="choreModel" OnValidSubmit="HandleValidSubmit">
         <DataAnnotationsValidator />
@@ -40,7 +51,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var chore in chores)
+            @foreach (var chore in filteredChores)
             {
                 <tr>
                     <td>@chore.ChoreName.ToTitleCase()</td>
@@ -56,7 +67,7 @@
     </table>
 </div>
 <div class="d-block d-md-none">
-    @foreach (var chore in chores)
+    @foreach (var chore in filteredChores)
     {
         <div class="card mb-2 shadow-sm">
             <div class="card-body p-2">
@@ -76,10 +87,13 @@
 </div>
 
 @code {
-    private List<ChoreItem> chores = new();
+    private List<ChoreItem> allChores = new();
+    private List<ChoreItem> filteredChores = new();
     private ChoreItem choreModel = new();
     private bool showForm = false;
     private bool isEdit => choreModel.ChoreItemId != 0;
+    private bool showSearch = false;
+    private SearchFilterComponent.SearchFilterCriteria currentFilters = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -88,7 +102,8 @@
 
     private async Task LoadChores()
     {
-        chores = (await ChoreItemService.GetAllAsync()).Where(c => !c.IsDeleted).ToList();
+        allChores = (await ChoreItemService.GetAllAsync()).Where(c => !c.IsDeleted).ToList();
+        ApplyFilters();
     }
 
     private async Task HandleValidSubmit()
@@ -130,11 +145,37 @@
         showForm = !showForm;
     }
 
+    private void ToggleSearch()
+    {
+        showSearch = !showSearch;
+    }
+
     private string FormatPrice(decimal price)
     {
         if (price % 1 == 0)
             return "$" + ((int)price).ToString();
         else
             return "$" + price.ToString("0.00");
+    }
+
+    private async Task OnFiltersChanged(SearchFilterComponent.SearchFilterCriteria filters)
+    {
+        currentFilters = filters;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        var query = allChores.AsEnumerable();
+        if (!string.IsNullOrWhiteSpace(currentFilters.SearchTerm))
+        {
+            var searchTerm = currentFilters.SearchTerm.ToLower();
+            query = query.Where(c =>
+                (c.ChoreName ?? "").ToLower().Contains(searchTerm) ||
+                (c.Description ?? "").ToLower().Contains(searchTerm)
+            );
+        }
+        filteredChores = query.ToList();
+        StateHasChanged();
     }
 } 

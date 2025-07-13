@@ -4,6 +4,7 @@ using KidsChore.Infrastructure.Repositories;
 using KidsChore.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using KidsChore.UI;
+using KidsChore.UI.Shared;
 using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +29,7 @@ builder.Services.AddScoped<IChoreCompletionService, ChoreCompletionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IWeeklyPaymentStatusService, WeeklyPaymentStatusService>();
+builder.Services.AddScoped<NotificationService>();
 
 builder.Services.AddAuthorizationCore();
 

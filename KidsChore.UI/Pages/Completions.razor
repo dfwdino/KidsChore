@@ -4,13 +4,24 @@
 @inject IKidService KidService
 @inject IChoreItemService ChoreItemService
 @inject ILocationService LocationService
+@inject NotificationService NotificationService
+@using KidsChore.UI.Shared
 
 
 <h3>Chore Completions</h3>
 
 <button class="btn btn-primary mb-1" @onclick="ToggleForm">@(showForm ? (kidModelIsEdit ? "Edit Completion" : "Hide Form") : "Add Completion")</button>
+<button class="btn btn-outline-secondary ms-2" @onclick="ToggleSearch">@(showSearch ? "Hide Search" : "Show Search")</button>
 <br />
 <div style="margin-bottom: 2rem;"></div>
+
+@if (showSearch)
+{
+    <SearchFilterComponent 
+        TotalCount="@allCompletions.Count" 
+        FilteredCount="@filteredCompletions.Count" 
+        OnFiltersChanged="OnFiltersChanged" />
+}
 
 
 <div class="collapse @(showForm ? "show" : "")" id="completionForm">
@@ -85,7 +96,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var completion in completions)
+            @foreach (var completion in filteredCompletions)
             {
                 <tr>
                     <td>@kids.FirstOrDefault(k => k.KidId == completion.KidId)?.Name</td>
@@ -103,7 +114,7 @@
     </table>
 </div>
 <div class="d-block d-md-none">
-    @foreach (var completion in completions)
+    @foreach (var completion in filteredCompletions)
     {
         <div class="card mb-2 shadow-sm">
             <div class="card-body p-2">
@@ -125,7 +136,8 @@
 </div>
 
 @code {
-    private List<ChoreCompletion> completions = new();
+    private List<ChoreCompletion> allCompletions = new();
+    private List<ChoreCompletion> filteredCompletions = new();
     private ChoreCompletion completionModel = new() { CompletionDateTime = DateTime.Now };
     private List<Kid> kids = new();
     private List<ChoreItem> chores = new();
@@ -133,6 +145,8 @@
     private bool showForm = false;
     private bool kidModelIsEdit => completionModel.ChoreCompletionId != 0;
     private bool showDetails = false;
+    private bool showSearch = false;
+    private SearchFilterComponent.SearchFilterCriteria currentFilters = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -141,11 +155,12 @@
 
     private async Task LoadData()
     {
-        completions = (await ChoreCompletionService.GetAllAsync())
+        allCompletions = (await ChoreCompletionService.GetAllAsync())
             .Where(c => !c.IsDeleted)
             .OrderByDescending(c => c.CompletionDateTime)
             .ThenBy(c => c.ChoreCompletionId)
             .ToList();
+        filteredCompletions = allCompletions;
         kids = (await KidService.GetAllAsync()).Where(k => !k.IsDeleted).ToList();
         chores = (await ChoreItemService.GetAllAsync()).Where(c => !c.IsDeleted).ToList();
         locations = (await LocationService.GetAllAsync()).Where(l => !l.IsDeleted).ToList();
@@ -160,12 +175,25 @@
 
     private async Task HandleValidSubmit()
     {
-        if (completionModel.ChoreCompletionId == 0)
-            await ChoreCompletionService.AddAsync(completionModel);
-        else
-            await ChoreCompletionService.UpdateAsync(completionModel);
-        await LoadData();
-        ClearForm();
+        try
+        {
+            if (completionModel.ChoreCompletionId == 0)
+            {
+                await ChoreCompletionService.AddAsync(completionModel);
+                NotificationService.ShowSuccess("Chore completion added successfully!");
+            }
+            else
+            {
+                await ChoreCompletionService.UpdateAsync(completionModel);
+                NotificationService.ShowSuccess("Chore completion updated successfully!");
+            }
+            await LoadData();
+            ClearForm();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError($"Error saving completion: {ex.Message}");
+        }
     }
 
     private void EditCompletion(ChoreCompletion completion)
@@ -184,8 +212,16 @@
 
     private async Task DeleteCompletion(int id)
     {
-        await ChoreCompletionService.DeleteAsync(id);
-        await LoadData();
+        try
+        {
+            await ChoreCompletionService.DeleteAsync(id);
+            NotificationService.ShowSuccess("Chore completion deleted successfully!");
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.ShowError($"Error deleting completion: {ex.Message}");
+        }
     }
 
     private void ClearForm()
@@ -218,5 +254,59 @@
     private void ToggleDetails()
     {
         showDetails = !showDetails;
+    }
+
+    private void ToggleSearch()
+    {
+        showSearch = !showSearch;
+    }
+
+    private async Task OnFiltersChanged(SearchFilterComponent.SearchFilterCriteria filters)
+    {
+        currentFilters = filters;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        var query = allCompletions.AsQueryable();
+
+        // Apply date filters first (these work with expression trees)
+        if (currentFilters.StartDate.HasValue)
+        {
+            query = query.Where(c => c.CompletionDateTime.Date >= currentFilters.StartDate.Value.Date);
+        }
+
+        if (currentFilters.EndDate.HasValue)
+        {
+            query = query.Where(c => c.CompletionDateTime.Date <= currentFilters.EndDate.Value.Date);
+        }
+
+        // Get the filtered results first
+        var dateFilteredResults = query.ToList();
+
+        // Apply search term to the in-memory results
+        if (!string.IsNullOrWhiteSpace(currentFilters.SearchTerm))
+        {
+            var searchTerm = currentFilters.SearchTerm.ToLower();
+            filteredCompletions = dateFilteredResults.Where(c =>
+            {
+                var kidName = kids.FirstOrDefault(k => k.KidId == c.KidId)?.Name ?? "";
+                var choreName = chores.FirstOrDefault(ch => ch.ChoreItemId == c.ChoreItemId)?.ChoreName ?? "";
+                var locationName = locations.FirstOrDefault(l => l.LocationId == c.LocationId)?.LocationName ?? "";
+                var notes = c.Notes ?? "";
+
+                return kidName.ToLower().Contains(searchTerm) ||
+                       choreName.ToLower().Contains(searchTerm) ||
+                       locationName.ToLower().Contains(searchTerm) ||
+                       notes.ToLower().Contains(searchTerm);
+            }).ToList();
+        }
+        else
+        {
+            filteredCompletions = dateFilteredResults;
+        }
+
+        StateHasChanged();
     }
 } 
